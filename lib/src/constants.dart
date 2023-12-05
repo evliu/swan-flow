@@ -33,3 +33,29 @@ ButtonStyle goldenButtonStyle = ButtonStyle(
   foregroundColor: MaterialStateProperty.all<Color>(SwanColors.coolBlue.value),
   fixedSize: MaterialStateProperty.all<Size>(const Size(200, 48)),
 );
+
+ButtonStyle goldenDisabledButtonStyle = ButtonStyle(
+  shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+      const RoundedRectangleBorder(borderRadius: swanRadiiMd)),
+  backgroundColor:
+      MaterialStateProperty.all<Color>(SwanColors.golden.value.withAlpha(160)),
+  foregroundColor: MaterialStateProperty.all<Color>(SwanColors.coolBlue.value),
+  fixedSize: MaterialStateProperty.all<Size>(const Size(200, 48)),
+);
+
+var themeData = ThemeData(
+  progressIndicatorTheme: ProgressIndicatorThemeData(
+    color: SwanColors.coolBlue.value,
+  ),
+  textTheme: TextTheme(
+    displayLarge: TextStyle(
+      fontSize: 48,
+      fontWeight: FontWeight.bold,
+      color: SwanColors.trueBlue.value,
+    ),
+    headlineMedium: const TextStyle(
+      fontSize: 24,
+      fontWeight: FontWeight.bold,
+    ),
+  ),
+);

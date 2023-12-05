@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
 
-import '../constants.dart';
-import 'buy_screen.dart';
+import '../../constants.dart';
+import 'buy_screen/buy_screen.dart';
 import 'preview_screen.dart';
 import 'success_screen.dart';
 
 class BuyNavigator extends StatelessWidget {
-  final double price;
-
-  const BuyNavigator({Key? key, required this.price}) : super(key: key);
+  const BuyNavigator({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -27,7 +25,7 @@ class BuyNavigator extends StatelessWidget {
           WidgetBuilder builder;
           switch (settings.name) {
             case 'buy':
-              builder = (BuildContext _) => BuyScreen(price: price);
+              builder = (BuildContext _) => const BuyScreen();
               break;
             case 'preview':
               builder = (BuildContext _) => const PreviewScreen();

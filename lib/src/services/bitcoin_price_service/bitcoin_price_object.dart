@@ -13,6 +13,13 @@ class BitcoinPrice {
     required this.dateTime,
   });
 
+  static BitcoinPrice empty() => BitcoinPrice(
+        price: 0,
+        changePercent: 0,
+        changeValue: 0,
+        dateTime: DateTime.now(),
+      );
+
   String get formattedDate =>
       DateFormat('h:mm:ssa MM/dd/yyyy').format(dateTime.toLocal());
 
