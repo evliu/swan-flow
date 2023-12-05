@@ -1,7 +1,17 @@
+import 'package:animations/animations.dart';
 import 'package:flutter/material.dart';
-import 'package:swan_bitcoin_challenge/bitcoinPriceService.dart';
+import 'package:flutter/services.dart';
+import 'package:swan_bitcoin_challenge/services/bitcoin_price_service/bitcoin_price_object.dart';
 
-void main() => runApp(const SwanChallengeApp());
+import 'bitcoinChartView.dart';
+import 'services/bitcoin_price_service/coindesk_bitcoin_price_service.dart';
+import 'buy_flow/buy_navigator.dart';
+import 'constants.dart';
+import 'widgets/buy_bitcoin_button.dart';
+
+void main() {
+  runApp(const SwanChallengeApp());
+}
 
 // ignore: slash_for_doc_comments
 /**
@@ -32,13 +42,16 @@ class SwanChallengeApp extends StatelessWidget {
       title: 'Swan Challenge',
       theme: ThemeData(
         primarySwatch: Colors.blue,
-        textTheme: const TextTheme(
+        progressIndicatorTheme: ProgressIndicatorThemeData(
+          color: SwanColors.coolBlue.value,
+        ),
+        textTheme: TextTheme(
           displayLarge: TextStyle(
-              fontSize: 48,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF0074C7) // swan colors TrueBlue,
-              ),
-          headlineMedium: TextStyle(
+            fontSize: 48,
+            fontWeight: FontWeight.bold,
+            color: SwanColors.trueBlue.value,
+          ),
+          headlineMedium: const TextStyle(
             fontSize: 24,
             fontWeight: FontWeight.bold,
           ),
@@ -55,7 +68,11 @@ class HomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Swan Challenge'),
+        title: const Text(
+          'Swan Challenge',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+        backgroundColor: SwanColors.coolBlue.value,
       ),
       body: const HomeView(),
     );
@@ -64,15 +81,18 @@ class HomePage extends StatelessWidget {
 
 class HomeView extends StatefulWidget {
   const HomeView({super.key});
+
   @override
-  _HomeViewState createState() => _HomeViewState();
+  State<HomeView> createState() => _HomeViewState();
 }
 
 class _HomeViewState extends State<HomeView> {
-  final bitcoinPriceService = BitcoinPriceService();
+  final bitcoinPriceService = CoindeskBitcoinPriceService();
+
   @override
   void initState() {
     super.initState();
+    bitcoinPriceService.fetchBitcoinPrice();
     bitcoinPriceService.startRefreshing();
   }
 
@@ -85,10 +105,19 @@ class _HomeViewState extends State<HomeView> {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<double>(
+    return StreamBuilder<BitcoinPrice>(
       stream: bitcoinPriceService.priceStream,
       builder: (context, snapshot) {
         if (snapshot.hasData) {
+          final item = snapshot.data!;
+          final price = item.price;
+          final changePercent = item.changePercent;
+          final changeValue = item.changeValue;
+          final isUp = changePercent >= 0;
+          final lastUpdated = item.formattedDate;
+
+          print(' price: $price');
+
           return Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -98,38 +127,40 @@ class _HomeViewState extends State<HomeView> {
                   style: Theme.of(context).textTheme.headlineMedium,
                 ),
                 Text(
-                  '\$${snapshot.data!.toStringAsFixed(2)}',
+                  '\$${price.toStringAsFixed(2)}',
                   style: Theme.of(context).textTheme.displayLarge,
                 ),
-                // Button to refresh the price
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    foregroundColor:
-                        const Color(0xFF0074C7), // swan colors TrueBlue,
-                  ),
-                  onPressed: () => bitcoinPriceService.fetchBitcoinPrice(),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      bitcoinPriceService.isLoading
-                          ? const CircularProgressIndicator()
-                          : const Icon(Icons.refresh),
-                      const SizedBox(width: 8),
-                      Text(
-                        'Last updated: ${bitcoinPriceService.lastUpdated}',
-                        style:
-                            const TextStyle(fontSize: 12, color: Colors.grey),
-                      ),
-                    ],
+                Text(
+                  '${changePercent.toStringAsFixed(2)}% ${isUp ? '⬆' : '⬇'} \$${changeValue.toStringAsFixed(2)} Today',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: isUp ? Colors.greenAccent : Colors.redAccent,
                   ),
                 ),
+                Text(
+                  'Updated: $lastUpdated',
+                  style: const TextStyle(fontSize: 12, color: Colors.grey),
+                ),
+                const Expanded(
+                  flex: 4,
+                  child: Card(
+                    margin: EdgeInsets.all(16),
+                    elevation: 4,
+                    child: Padding(
+                      padding: EdgeInsets.all(8.0),
+                      child: BitcoinChartUI(),
+                    ),
+                  ),
+                ),
+                const Spacer(),
+                BuyButton(openTo: BuyNavigator(price: price)),
+                const Spacer(),
               ],
             ),
           );
         } else {
-          return const Center(
-            child: CircularProgressIndicator(),
-          );
+          return const Center(child: CircularProgressIndicator());
         }
       },
     );
